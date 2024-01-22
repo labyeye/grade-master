@@ -33,8 +33,19 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Salina-Trial-Bold.ttf</string>
+		<string>Salina-Trial-Book.ttf</string>
+		<string>Salina-Trial-ExtraLight.ttf</string>
+		<string>JosefinSans-VariableFont_wght.ttf</string>
+		<string>MontserratAlternates-BlackItalic.ttf</string>
+		<string>MontserratAlternates-ExtraBold.ttf</string>
+		<string>MontserratAlternates-Regular.ttf</string>
+		<string>MontserratAlternates-SemiBoldItalic.ttf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>LaunchScreen.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

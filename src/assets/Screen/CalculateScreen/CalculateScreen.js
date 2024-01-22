@@ -1,16 +1,52 @@
-import React from "react";
-import { useState } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from "react-native";
 
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Platform } from "react-native";
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { InterstitialAd } from "react-native-google-mobile-ads";
+import { AdEventType } from "react-native-google-mobile-ads";
+const adUnitId = 'ca-app-pub-6119758783032593/5084487860';
+const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
+    keywords: ['fashion', 'clothing'],
+});
 const CalculateScreen = () => {
-    const maxSubjects = 5; // You mentioned 5 subjects, so updating the maxSubjects
+    const maxSubjects = 8;
+    const minSubjects = 5;
+    const [subjectCount, setSubjectCount] = useState(5); // Default number of subjects
     const [subjects, setSubjects] = useState(Array.from({ length: maxSubjects }, () => ({ name: "", grade: "", credits: "" })));
     const [cgpa, setCGPA] = useState(null);
+    const [loaded, setLoaded] = useState(false);
+    const [adLoaded, setadLoaded] = useState(false);
+    
+
+    useEffect(() => {
+        const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+            setLoaded(true);
+            setadLoaded(true); // Update adLoaded state
+        });
+    
+        // Start loading the interstitial straight away
+        interstitial.load();
+    
+        // Unsubscribe from events on unmount
+        return () => {
+            unsubscribeLoaded();
+        };
+    }, []);
+    const handleCalculatePress = () => {
+        if (adLoaded) {
+            interstitial.show();
+        } else {
+            calculateCGPA();
+        }
+    };
+
+
     const handleSubjectChange = (index, field, value) => {
         const newSubjects = [...subjects];
         newSubjects[index][field] = value;
         setSubjects(newSubjects);
     };
+
     const getGradeValue = (grade) => {
         // Define your grade values here
         switch (grade) {
@@ -20,83 +56,125 @@ const CalculateScreen = () => {
                 return 9.18;
             case "A" || "a":
                 return 8.33;
-
+            case "B+" || "b+":
+                return 7.50;
+            case "B" || "b":
+                return 6.68;
+            case "C+" || "c+":
+                return 5.83
+            case "C" || "c":
+                return 5.00;
             default:
                 return 0;
         }
     };
     const calculateCGPA = () => {
-        const totalCredits = subjects.reduce((sum, subject) => sum + parseFloat(subject.credits || 0), 0);
-        const weightedGradePoints = subjects.reduce((sum, subject) => {
+        let totalCredits = 0;
+        let weightedGradePoints = 0;
+
+        for (const subject of subjects) {
+            const credits = parseFloat(subject.credits || 0);
             const gradeValue = getGradeValue(subject.grade);
-            return sum + gradeValue * parseFloat(subject.credits || 0);
-        }, 0);
+
+            totalCredits += credits;
+            weightedGradePoints += gradeValue * credits;
+        }
 
         const calculatedCGPA = totalCredits !== 0 ? weightedGradePoints / totalCredits : 0;
         setCGPA(calculatedCGPA.toFixed(2)); // Round to two decimal places
     };
+    const addSubject = () => {
+        if (subjectCount < maxSubjects) {
+            setSubjectCount(subjectCount + 1);
+        }
+    };
+
+    const removeSubject = () => {
+        if (subjectCount > minSubjects) {
+            setSubjectCount(subjectCount - 1);
+        }
+    };
     return (
         <View style={{ flex: 1, backgroundColor: '#efefd0', justifyContent: 'center', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-            <View style={{marginTop:20}}>
-                <Text style={styles.text}>Calculator your CGPA</Text>
+            <View style={{ marginTop: 0 }}>
+                <Text style={styles.text}>Calculate your CGPA</Text>
             </View>
-            <View style={{ flexDirection: 'row', width: "100%", gap: 10, justifyContent: 'center',height:"60%"}}>
+            <View style={{ flexDirection: 'row', width: "100%", gap: 10, justifyContent: 'center', height: "60%" }}>
                 <View style={{ width: "60%", gap: 10 }}>
-                    <Text>Enter Subject Name</Text>
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(0, "grade", value)} placeholder="Enter Subject 1" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(1, "grade", value)} placeholder="Enter Subject 2" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(2, "grade", value)} placeholder="Enter Subject 3" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(3, "grade", value)} placeholder="Enter Subject 4" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(4, "grade", value)} placeholder="Enter Subject 5" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(5, "grade", value)} placeholder="Enter Subject 6" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(6, "grade", value)} placeholder="Enter Subject 7" />
-                    <TextInput style={styles.textinput} onChangeText={(value) => handleSubjectChange(7, "grade", value)} placeholder="Enter Subject 8" />
+                    <Text>Subjects</Text>
+                    {[...Array(subjectCount)].map((_, index) => (
+                        <TextInput
+                            key={index}
+                            style={[styles.textinput, styles.shadowProp]}
+                            onChangeText={(value) => handleSubjectChange(index, "grade", value)}
+                            placeholder={`Enter Subject ${index + 1}`}
+                        />
+                    ))}
                 </View>
                 <View style={{ width: "15%", gap: 10 }}>
                     <Text>Grade</Text>
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(0, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(1, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(2, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(3, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(4, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(5, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(6, "grade", value)} />
-                    <TextInput style={styles.textinput1} onChangeText={(value) => handleSubjectChange(7, "grade", value)} />
-
+                    {[...Array(subjectCount)].map((_, index) => (
+                        <TextInput
+                            key={index}
+                            style={[styles.textinput1, styles.shadowProp]}
+                            onChangeText={(value) => handleSubjectChange(index, "grade", value)}
+                        />
+                    ))}
                 </View>
                 <View style={{ width: "12%", gap: 10 }}>
-                    <Text>Credit</Text>
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(0, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(1, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(2, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(3, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(4, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(5, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(6, "credits", value)} />
-                    <TextInput style={styles.textinput2} onChangeText={(value) => handleSubjectChange(6, "credits", value)} />
-
+                    <Text>Credits</Text>
+                    {[...Array(subjectCount)].map((_, index) => (
+                        <TextInput
+                            key={index}
+                            style={[styles.textinput2, styles.shadowProp]}
+                            onChangeText={(value) => handleSubjectChange(index, "credits", value)}
+                        />
+                    ))}
                 </View>
             </View>
-            <TouchableOpacity style={styles.but} onPress={calculateCGPA}>
-                <Text style={styles.button}>Calculate</Text>
-            </TouchableOpacity>
-            <Text style={{fontWeight:'bold'}}>Your CGPA is {cgpa}</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={styles.add} onPress={addSubject}>
+                    <Image source={require('../../Images/add.png')} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.but} onPress={handleCalculatePress}>
+                    <Text style={styles.button}>Calculate</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.remove} onPress={removeSubject}>
+                    <Image source={require('../../Images/delete.png')} />
+                </TouchableOpacity>
+            </View>
+            <Text style={{ fontWeight: 'bold' }}>Your CGPA is {cgpa}</Text>
+            <BannerAd
+                unitId={Platform.OS === 'ios'
+                    ? 'ca-app-pub-6119758783032593/2442421770'
+                    : null}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            />
         </View>
     );
-}
+};
+
 const styles = StyleSheet.create({
+    shadowProp: {
+        shadowColor: '#171717',
+        shadowOffset: { width: -5, height: 7 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+    },
     text: {
         fontSize: 30,
         color: "#004e89",
-        fontWeight:'bold',
+        fontWeight: 'bold',
         alignSelf: "center",
+        fontFamily: "MontserratAlternates-Regular"
     },
     textinput: {
         height: "9%",
         width: "100%",
         borderColor: "black",
         borderRadius: 10,
-        borderWidth: 2,
         paddingLeft: 5,
         backgroundColor: '#f7c59f'
     },
@@ -105,7 +183,6 @@ const styles = StyleSheet.create({
         width: "100%",
         borderColor: "black",
         borderRadius: 10,
-        borderWidth: 2,
         paddingLeft: 20,
         backgroundColor: '#f7c59f'
     },
@@ -114,19 +191,34 @@ const styles = StyleSheet.create({
         width: "100%",
         borderColor: "black",
         borderRadius: 10,
-        borderWidth: 2,
         paddingLeft: 15,
         backgroundColor: '#f7c59f'
     },
     but: {
         backgroundColor: "#004e89",
         padding: 10,
-        width: "70%",
+        width: "35%",
         borderRadius: 50,
         alignItems: 'center',
+        justifyContent: "center"
     },
     button: {
         color: "white"
     },
-})
+    add: {
+        backgroundColor: "#004e89",
+        padding: 10,
+        width: "20%",
+        borderRadius: 50,
+        alignItems: 'center',
+    },
+    remove: {
+        backgroundColor: "#004e89",
+        padding: 10,
+        width: "20%",
+        borderRadius: 50,
+        alignItems: 'center',
+    },
+});
+
 export default CalculateScreen;

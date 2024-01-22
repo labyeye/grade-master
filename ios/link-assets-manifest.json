@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/JosefinSans-VariableFont_wght.ttf",
+      "sha1": "ad2439d6f0dfc795c4dbefb342383f9f02810427"
+    },
+    {
+      "path": "src/assets/fonts/MontserratAlternates-BlackItalic.ttf",
+      "sha1": "6c03044cff6de8cdaee7b6b72e813d89bd6956c0"
+    },
+    {
+      "path": "src/assets/fonts/MontserratAlternates-ExtraBold.ttf",
+      "sha1": "32205c8b0a267729906dc0c882f03ff1446dcdcd"
+    },
+    {
+      "path": "src/assets/fonts/MontserratAlternates-Regular.ttf",
+      "sha1": "8a441a013bb65edb42d747efc85caba6d4149464"
+    },
+    {
+      "path": "src/assets/fonts/MontserratAlternates-SemiBoldItalic.ttf",
+      "sha1": "31d3f673326f3bbe925002b0a4d87e19896a5a6a"
+    },
+    {
+      "path": "src/assets/fonts/Salina-Trial-Bold.ttf",
+      "sha1": "7cb65feb4c3bdba372e3d4d61efb74fc9b38d736"
+    },
+    {
+      "path": "src/assets/fonts/Salina-Trial-Book.ttf",
+      "sha1": "2a36091252e270ab79e0fd404cfa1fc2e91b6266"
+    },
+    {
+      "path": "src/assets/fonts/Salina-Trial-ExtraLight.ttf",
+      "sha1": "d0ddb6569aa4637e380e1aabab94500d4e72c24c"
+    }
+  ]
+}
