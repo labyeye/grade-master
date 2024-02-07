@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Platform } from "react-native";
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-import { InterstitialAd } from "react-native-google-mobile-ads";
-import { AdEventType } from "react-native-google-mobile-ads";
-const adUnitId = 'ca-app-pub-6119758783032593/5084487860';
-const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
-    keywords: ['fashion', 'clothing'],
+import { BannerAd, BannerAdSize, RewardedAdEventType } from 'react-native-google-mobile-ads';
+import { RewardedAd } from 'react-native-google-mobile-ads';
+
+const adunitId = 'ca-app-pub-6119758783032593/7813203928';
+const rewarded = RewardedAd.createForAdRequest(adunitId, {
+  keywords: ['fashion', 'clothing'],
 });
+
 const CalculateScreen = () => {
     const maxSubjects = 8;
     const minSubjects = 5;
@@ -16,36 +17,49 @@ const CalculateScreen = () => {
     const [cgpa, setCGPA] = useState(null);
     const [loaded, setLoaded] = useState(false);
     const [adLoaded, setadLoaded] = useState(false);
-    
+
 
     useEffect(() => {
-        const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-            setLoaded(true);
-            setadLoaded(true); // Update adLoaded state
+        const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+          setLoaded(true);
         });
+        const unsubscribeEarned = rewarded.addAdEventListener(
+          RewardedAdEventType.EARNED_REWARD,
+          reward => {
+            // Assuming the reward.amount is the calculated CGPA
+            setCGPA(reward.amount.toFixed(2));
+            console.log('User earned reward of ', reward);
+          },
+        );
     
-        // Start loading the interstitial straight away
-        interstitial.load();
+        // Start loading the rewarded ad straight away
+        rewarded.load();
     
         // Unsubscribe from events on unmount
         return () => {
-            unsubscribeLoaded();
+          unsubscribeLoaded();
+          unsubscribeEarned();
         };
-    }, []);
+      }, []);
+    
+
     const handleCalculatePress = () => {
         if (adLoaded) {
-            interstitial.show();
+            rewarded.show();
         } else {
+            // If ad is not loaded, calculate CGPA directly
             calculateCGPA();
         }
     };
-
+    
+    
 
     const handleSubjectChange = (index, field, value) => {
         const newSubjects = [...subjects];
         newSubjects[index][field] = value;
         setSubjects(newSubjects);
     };
+    
 
     const getGradeValue = (grade) => {
         // Define your grade values here
@@ -69,16 +83,11 @@ const CalculateScreen = () => {
         }
     };
     const calculateCGPA = () => {
-        let totalCredits = 0;
-        let weightedGradePoints = 0;
-
-        for (const subject of subjects) {
-            const credits = parseFloat(subject.credits || 0);
+        const totalCredits = subjects.reduce((sum, subject) => sum + parseFloat(subject.credits || 0), 0);
+        const weightedGradePoints = subjects.reduce((sum, subject) => {
             const gradeValue = getGradeValue(subject.grade);
-
-            totalCredits += credits;
-            weightedGradePoints += gradeValue * credits;
-        }
+            return sum + gradeValue * parseFloat(subject.credits || 0);
+        }, 0);
 
         const calculatedCGPA = totalCredits !== 0 ? weightedGradePoints / totalCredits : 0;
         setCGPA(calculatedCGPA.toFixed(2)); // Round to two decimal places
